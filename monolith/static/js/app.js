@@ -1,14 +1,3 @@
-$("#newBook").click(function(){
-    $("#bookTableForm").submit();
-});
-$(".showBooking").click(showBookRestaurant);
-
-function showBookRestaurant(){
-    $("#restaurantID").val($(this).data("id"));
-    $("#bookTable").modal("show");
-    return false;
-}
-
 //document ready routine
 $(document).ready(function() {
     if ($("#myreservation").length){
