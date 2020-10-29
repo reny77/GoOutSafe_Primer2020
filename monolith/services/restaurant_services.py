@@ -9,7 +9,7 @@ class RestaurantServices:
     @staticmethod
     def create_new_restaurant(form: RestaurantForm, user_id: int, max_sit: int):
         """
-        TODO
+        This method contains all logic save inside the a new restaurant
         :return:
         """
         restaurant = Restaurant()
@@ -56,4 +56,18 @@ class RestaurantServices:
 
         return restaurant
 
+    @staticmethod
+    def get_all_restaurants():
+        """
+        Method to return a list of all restaurants inside the database
+        """
+        all_restaurants = db.session.query(Restaurant).all()
+        return all_restaurants
 
+    @staticmethod
+    def get_restaurants_id():
+        """
+        Method to return a list of all restaurants inside the database
+        """
+        all_restaurants = db.session.query(Restaurant).all()
+        return all_restaurants

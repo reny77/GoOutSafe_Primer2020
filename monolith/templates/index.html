@@ -9,19 +9,23 @@
               <!-- Home for Health authority-->
               {% if current_user.email == "health_authority@gov.com" %}
                 {{ current_user.email }}
+
                 <br>
-                N° actual positives :
+                <p class="lead"> Hi {{ current_user.firstname }}! <a href="/logout">Logout</a> </p>
+
+
+                N° actual positives : {{ n_positive }}
                 <br>
-                N° actual healed :
-                <br>
+                N° actual healed : {{ n_healed }}
+                <br><br>
 
                 <p class="lead"> Hi {{ current_user.firstname }}! <a href="/logout">Logout</a> </p>
                 {% if session["ROLE"] != "OPERATOR" %}
                     <p class="mt-3 lead"> Do you have a restaurant? <a href="/restaurant/create">Register it</a></p>
                {% endif %}
                 <a href="/mark_positive"><button type="button" class="btn btn-primary mark" id="mark">Mark as a Covid-19 positive</button></a><br><br>
-                <button type="button" class="btn btn-primary listcontacts" id="listcontacts">Find contacts with a positive</button>
-
+                <a href="/search_contacts"><button type="button" class="btn btn-primary listcontacts" id="listcontacts">Find contacts with a positive</button></a>
+                
               {% endif %}
 
                 {% if current_user.email != "health_authority@gov.com" %}
@@ -45,12 +49,12 @@
                                 class="card-img-top" alt="logo restaurant"/>
                             <p class="card-text text-dark mt-3">
                                 <i class="material-icons text-dark ">thumb_down</i>  <i class="material-icons text-dark">thumb_up</i> {{ restaurant.likes }}
-                                <br/>
-                                <a href="/restaurant/{{ restaurant.id }}"><button class="btn btn-link">Visit</button></a>&nbsp;
-                                {% if session['ROLE'] == 'CUSTOMER' %}
-                                  <button class="btn btn-primary showBooking" data-id="{{ restaurant.id }}">Book</button>
-                                {% endif %}
                             </p>
+                            <div class="ratingStats" data-rating="4.5"></div>
+                            <a href="/restaurants/{{ restaurant.id }}"><button class="btn btn-link">Visit</button></a>&nbsp;
+                            {% if session['ROLE'] == 'CUSTOMER' %}
+                              <button class="btn btn-primary showBooking" data-id="{{ restaurant.id }}">Book</button>
+                            {% endif %}
                           </div>
                         </div>
                     {% endfor %}
@@ -72,14 +76,23 @@
             </button>
           </div>
           <div class="modal-body">
-            <form method="POST" action="/restaurant/book" id="bookTableForm">
-                <input type="hidden" name="restaurantID" id="restaurantID"/>
-                <label>Date</label>
-                <input type="text" class="form-control" name="date" placeholder="Date">
-                <label>Time</label>
-                <input type="text" class="form-control" name="time" placeholder="Time">
-                <label>Number of People</label>
-                <input type="text" class="form-control" name="people" placeholder="N. of people">
+            <form id ="bookTableForm" action="/book" method="POST">
+              <dl class="center-datepicker">
+               {% for field in form.display %}
+                   <dt>{{ form[field].label }}</dt>
+                   <dd class="text-center">{{ form[field](class_="form-control", placeholder=form[field].label.text) }}</dd>
+                     {% if form[field].errors %}
+                        {% for e in form[field].errors %}
+                         <p class="help-block">{{ e }}</p>
+                        {% endfor %}
+                     {% endif %}
+               {% endfor %}
+               {% if error %}
+                  <div class="alert alert-danger" role="alert">
+                      {{ error }}
+                  </div>
+              {% endif  %}
+              </dl>
             </form>
           </div>
           <div class="modal-footer">

@@ -9,14 +9,10 @@ from monolith.database import (
     Menu,
     PhotoGallery,
 )
+from monolith.forms import PhotoGalleryForm
+from monolith.services import RestaurantServices
 from monolith.auth import roles_allowed
 from flask_login import current_user, login_required
-from monolith.forms import RestaurantForm, RestaurantTableForm, PhotoGalleryForm
-from datetime import datetime
-
-from monolith.services import RestaurantServices
-from monolith.auth import admin_required, current_user, roles_allowed
-from flask_login import current_user, login_user, logout_user, login_required
 from monolith.forms import RestaurantForm, RestaurantTableForm
 from monolith.utils.formatter import my_date_formatter
 
@@ -27,7 +23,10 @@ _max_seats = 6
 
 @restaurants.route("/restaurant/restaurants")
 def _restaurants(message=""):
-    allrestaurants = db.session.query(Restaurant)
+    """
+    Return the list of restaurants stored inside the db
+    """
+    allrestaurants = RestaurantServices.get_all_restaurants()
     return render_template(
         "restaurants.html",
         message=message,
@@ -38,6 +37,11 @@ def _restaurants(message=""):
 
 @restaurants.route("/restaurant/<restaurant_id>")
 def restaurant_sheet(restaurant_id):
+    """
+    Missing refactoring to services
+    :param restaurant_id:
+    :return:
+    """
     record = db.session.query(Restaurant).filter_by(id=int(restaurant_id)).all()[0]
     weekDaysLabel = [
         "Monday",
@@ -92,6 +96,7 @@ def _like(restaurant_id):
 
 @restaurants.route("/restaurant/create", methods=["GET", "POST"])
 @login_required
+@roles_allowed(roles=["OPERATOR"])
 def create_restaurant():
     """
     TODO user restaurant services
@@ -146,7 +151,7 @@ def create_restaurant():
 @login_required
 @roles_allowed(roles=["OPERATOR"])
 def my_reservations():
-    # http://localhost:5000/list_reservations?fromDate=2013-10-07&toDate=2014-10-07&email=john.doe@email.com
+    # http://localhost:5000/my_reservations?fromDate=2013-10-07&toDate=2014-10-07&email=john.doe@email.com
 
     # for security reason, that are retrive on server side, not passed by params
     owner_id = current_user.id
@@ -203,21 +208,26 @@ def my_reservations():
 def my_data():
     message = None
     if request.method == "POST":
-        # update query
-        q = Restaurant.query.filter_by(id=session["RESTAURANT_ID"]).update(
-            {
-                "name": request.form.get("name"),
-                "lat": request.form.get("lat"),
-                "lon": request.form.get("lon"),
-                "covid_measures": request.form.get("covid_measures"),
-            }
-        )
-        # if no resturant match the update query (session problem probably)
-        if q == 0:
-            message = "Some Errors occurs"
+        # TODO: add logic to update data
+        return redirect("/restaurant/my_restaurant_data")
+    else:
+        q = Restaurant.query.filter_by(id=session["RESTAURANT_ID"]).first()
+        if q is not None:
+            print(q.covid_measures)
+            form = RestaurantForm(obj=q)
+            form2 = RestaurantTableForm()
+            tables = RestaurantTable.query.filter_by(
+                restaurant_id=session["RESTAURANT_ID"]
+            )
+            return render_template(
+                "restaurant_data.html",
+                form=form,
+                only=["name", "lat", "lon", "covid_measures"],
+                tables=tables,
+                form2=form2,
+            )
         else:
-            db.session.commit()
-            message = "Restaurant data has been modified."
+            return redirect("/restaurant/create_restaurant")
 
     # get the resturant info and fill the form
     # this part is both for POST and GET requests
@@ -236,7 +246,7 @@ def my_data():
             message=message,
         )
     else:
-        return redirect("/restaurant//create_restaurant")
+        return redirect("/restaurant/create_restaurant")
 
 
 @restaurants.route("/restaurant/tables", methods=["GET", "POST"])
