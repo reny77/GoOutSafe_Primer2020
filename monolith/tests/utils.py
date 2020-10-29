@@ -26,7 +26,7 @@ def register_user(client, user: UserForm):
     This method perform the request to register a new user
     :param client: Is a flask app created inside the fixtures
     :param user: Is the User form populate with the mock data
-    :return: response from URL "/create_user"
+    :return: response from URL "/user/create_user"
     """
     data = dict(
         email=user.email,
@@ -119,6 +119,7 @@ def visit_reservation(client, from_date, to_date, email):
         follow_redirects=True,
     )
 
+
 def get_user_with_email(email):
     """
     This method factorize the code to get an user with a email
@@ -171,6 +172,7 @@ def create_user_on_db():
     user = User()
     form.populate_obj(user)
     return UserService.create_user(user, form.password)
+
 
 def del_user_on_db(id):
     db.session.query(User).filter_by(id=id).delete()
