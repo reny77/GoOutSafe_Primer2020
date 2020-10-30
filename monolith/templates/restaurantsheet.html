@@ -71,6 +71,51 @@
                     {% endfor %}
                 </div>
             </div>
+
+            <!-- Review section -->
+            <div class="py-4 px-4">
+              <div class="row justify-content-center">
+                <h2> What customers say about us</h2>
+              </div>  
+            </div>
+            <div class="py-4 px-4">
+              
+              {% if reviews %}
+                <div class="row">
+                {% for review in reviews %}
+                
+                  <div class="col-md-4">
+                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                      <div class="toast-header">
+                        <div class="ratingStats mr-auto" data-rating="{{ review.stars }}"></div>
+                        <small>{{ review.data.strftime("%d/%m/%Y %H:%M") }}</small>
+                      </div>
+                      <div class="toast-body">
+                        {{ review.review }}
+                      </div>
+                    </div>
+                  </div> 
+                
+              
+                
+                {% endfor %}
+                </div>
+              
+              {% else %}
+              <div class="row justify-content-center">
+                <h5>There is no reviews for this resturant..</h5>
+              </div>
+                
+              {% endif %}
+              </div>
+
+              <div class="py-4 px-4">
+                <div class="row justify-content-center">
+                  <button class="btn btn-primary" data-toggle="modal" data-target="#reviewRestaurant">Review this restaurant</button>
+                </div>
+              </div>
+
+          </div>
         </div>
     </div>
 </div>
@@ -86,15 +131,26 @@
             </button>
           </div>
           <div class="modal-body">
-            <form method="POST" action="/book" id="bookTableForm">
-                <input type="hidden" name="restaurantID" id="restaurantID"/>
-                <label>Date</label>
-                <input type="text" class="form-control" name="date" placeholder="Date">
-                <label>Time</label>
-                <input type="text" class="form-control" name="time" placeholder="Time">
-                <label>Number of People</label>
-                <input type="text" class="form-control" name="people" placeholder="N. of people">
+            <!-- Book form -->
+            <form id ="bookTableForm" action="/restaurant/book" method="POST">
+              <dl class="center-datepicker">
+               {% for field in book_form.display %}
+                   <dt>{{ book_form[field].label }}</dt>
+                   <dd class="text-center">{{ book_form[field](class_="form-control", placeholder=book_form[field].label.text) }}</dd>
+                     {% if book_form[field].errors %}
+                        {% for e in book_form[field].errors %}
+                         <p class="help-block">{{ e }}</p>
+                        {% endfor %}
+                     {% endif %}
+               {% endfor %}
+               {% if error %}
+                  <div class="alert alert-danger" role="alert">
+                      {{ error }}
+                  </div>
+              {% endif  %}
+              </dl>
             </form>
+
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" id="newBook">Book!</button>
@@ -103,6 +159,45 @@
         </div>
       </div>
     </div>
+
+
+
+    <div class="modal" tabindex="-1" role="dialog" id="reviewRestaurant">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Review</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id ="reviewForm" action="/restaurant/review/{{ id }}" method="POST">
+                <dl>
+                 {% for field in review_form.display %}
+                     <dt>{{ review_form[field].label(class_="sr-only") }}</dt>
+                     <dd>{{ review_form[field](class_="form-control", placeholder=review_form[field].label.text) }}</dd>
+                       {% if review_form[field].errors %}
+                          {% for e in review_form[field].errors %}
+                           <p class="help-block">{{ e }}</p>
+                          {% endfor %}
+                       {% endif %}
+                 {% endfor %}
+                 {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endif  %}
+                </dl>
+            </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" id="submitReview">Review!</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <script>
         var map = L.map('map').setView([{{ lat }}, {{ lon }}], 17);;

@@ -9,7 +9,7 @@ from monolith.database import (
     Menu,
     PhotoGallery,
 )
-from monolith.forms import PhotoGalleryForm
+from monolith.forms import PhotoGalleryForm, ReviewForm, ReservationForm
 from monolith.services import RestaurantServices
 from monolith.auth import roles_allowed
 from flask_login import current_user, login_required
@@ -19,23 +19,6 @@ from monolith.utils.formatter import my_date_formatter
 restaurants = Blueprint("restaurants", __name__)
 
 _max_seats = 6
-
-
-@restaurants.route("/restaurant/restaurants")
-def _restaurants(message="", _test=""):
-    """
-    Return the list of restaurants stored inside the db
-    """
-    allrestaurants = RestaurantServices.get_all_restaurants()
-    if len(_test) == 0:
-        _test = "all_rest_test"
-    return render_template(
-        "restaurants.html",
-        message=message,
-        _test=_test,
-        restaurants=allrestaurants,
-        base_url="http://127.0.0.1:5000/restaurants",
-    )
 
 
 @restaurants.route("/restaurant/<restaurant_id>")
@@ -62,6 +45,10 @@ def restaurant_sheet(restaurant_id):
     photos = PhotoGallery.query.filter_by(restaurant_id=int(restaurant_id)).all()
     ## FIXME(vincenzopalazzo): This is only a test to try to fix
     session["RESTAURANT_ID"] = restaurant_id
+
+    review_form = ReviewForm()
+    book_form = ReservationForm()
+
     return render_template(
         "restaurantsheet.html",
         id=restaurant_id,
@@ -75,6 +62,9 @@ def restaurant_sheet(restaurant_id):
         cuisine=q_cuisine,
         weekDaysLabel=weekDaysLabel,
         photos=photos,
+        review_form=review_form,
+        book_form=book_form,
+        reviews=RestaurantServices.get_three_reviews(restaurant_id),
         _test="visit_rest_test",
     )
 
@@ -129,24 +119,8 @@ def create_restaurant():
                 )
 
             # set the owner
-            RestaurantServices.create_new_restaurant(form, q_user.id, _max_seats)
-            ##new_restaurant = Restaurant()
-
-            ##TODO remove this code here
-            """
-            if q_user.role_id is not 2:
-                q_user.role_id = 2
-                db.session.commit()
-                current_app.logger.debug(
-                    "User {} with id {} update from role {} to {}".format(
-                        q_user.email, q_user.id, 3, q_user.role_id
-                    )
-                )
-            """
-            # set the new role in session
-            # if not the role will be anonymous
-            session["ROLE"] = "OPERATOR"
-
+            newrestaurant = RestaurantServices.create_new_restaurant(form, q_user.id, _max_seats)
+            session["RESTAURANT_ID"] = newrestaurant.id
             return redirect("/")
     return render_template("create_restaurant.html", form=form)
 
@@ -185,44 +159,24 @@ def my_data():
     message = None
     if request.method == "POST":
         # TODO: add logic to update data
-        return redirect("/restaurant/my_restaurant_data")
+        return redirect("/restaurant/data")
     else:
-        q = Restaurant.query.filter_by(id=session["RESTAURANT_ID"]).first()
-        if q is not None:
-            print(q.covid_measures)
-            form = RestaurantForm(obj=q)
-            form2 = RestaurantTableForm()
-            tables = RestaurantTable.query.filter_by(
-                restaurant_id=session["RESTAURANT_ID"]
-            )
-            return render_template(
-                "restaurant_data.html",
-                form=form,
-                only=["name", "lat", "lon", "covid_measures"],
-                tables=tables,
-                form2=form2,
-            )
-        else:
-            return redirect("/restaurant/create_restaurant")
-
-    # get the resturant info and fill the form
-    # this part is both for POST and GET requests
-    q = Restaurant.query.filter_by(id=session["RESTAURANT_ID"]).first()
-    if q is not None:
-        print(q.covid_measures)
-        form = RestaurantForm(obj=q)
-        form2 = RestaurantTableForm()
-        tables = RestaurantTable.query.filter_by(restaurant_id=session["RESTAURANT_ID"])
-        return render_template(
-            "restaurant_data.html",
-            form=form,
-            only=["name", "lat", "lon", "covid_measures"],
-            tables=tables,
-            form2=form2,
-            message=message,
-        )
-    else:
-        return redirect("/restaurant/create_restaurant")
+        if ("RESTAURANT_ID" in session):
+            q = Restaurant.query.filter_by(id=session["RESTAURANT_ID"]).first()
+            if q is not None:
+                form = RestaurantForm(obj=q)
+                form2 = RestaurantTableForm()
+                tables = RestaurantTable.query.filter_by(
+                    restaurant_id=session["RESTAURANT_ID"]
+                )
+                return render_template(
+                    "restaurant_data.html",
+                    form=form,
+                    only=["name", "lat", "lon", "covid_measures"],
+                    tables=tables,
+                    form2=form2,
+                )
+        return redirect("/restaurant/create")
 
 
 @restaurants.route("/restaurant/tables", methods=["GET", "POST"])
@@ -269,3 +223,41 @@ def my_photogallery():
         ).all()
         form = PhotoGalleryForm()
         return render_template("photogallery.html", form=form, photos=photos)
+
+
+@restaurants.route("/restaurant/review/<restaurant_id>", methods=["GET", "POST"])
+@login_required
+@roles_allowed(roles=["OPERATOR", "CUSTOMER"])
+def restaurant_review(restaurant_id):
+    if request.method == "POST":
+        form = ReviewForm()
+        review = RestaurantServices.review_restaurant(
+            restaurant_id, current_user.id, form.data["stars"], form.data["review"]
+        )
+        if review is not None:
+            print("Review inserted!")
+            ##FIXME @giacomofrigo
+            return render_template(
+                "review.html",
+                _test="review_done_test",
+                restaurant_name=RestaurantServices.get_restaurant_name(restaurant_id),
+                review=review,
+            )
+
+    return redirect("review.html")
+
+
+@restaurants.route("/restaurant/review/<restaurant_id>", methods=["GET"])
+@roles_allowed(roles=["OPERATOR", "CUSTOMER", "ADMIN"])
+def search_restaurant():
+    name = request.form.get("name")
+    current_app.logger.debug(
+        "An user want search a restaurant with name {}".format(name)
+    )
+    if name is None or len(name) is 0:
+        message = "Message not specified"
+        return render_template("index.html", _test="error_search_test", error=message)
+    filter_by_name = RestaurantServices.get_restaurants_by_keyword(name=name)
+    return render_template(
+        "index.html", _test="error_search_test", restaurants=filter_by_name
+    )

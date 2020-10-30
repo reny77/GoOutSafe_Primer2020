@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 import wtforms as f
-from wtforms.validators import DataRequired, Length, Email
+from wtforms.validators import DataRequired, Length, Email, NumberRange
 
 
 class LoginForm(FlaskForm):
@@ -16,6 +16,14 @@ class UserForm(FlaskForm):
     password = f.PasswordField("password", validators=[DataRequired()])
     dateofbirth = f.DateField("dateofbirth", format="%d/%m/%Y")
     display = ["email", "firstname", "lastname", "password", "dateofbirth"]
+
+
+class UserEditForm(FlaskForm):
+    email = f.StringField("email", validators=[DataRequired(), Email()])
+    firstname = f.StringField("firstname", validators=[DataRequired()])
+    lastname = f.StringField("lastname", validators=[DataRequired()])
+    dateofbirth = f.DateField("dateofbirth", format="%d/%m/%Y")
+    display = ["email", "firstname", "lastname", "dateofbirth"]
 
 
 class RestaurantForm(FlaskForm):
@@ -89,6 +97,12 @@ class PhotoGalleryForm(FlaskForm):
     url = f.StringField("URL", validators=[DataRequired()])
     caption = f.StringField("caption")
     display = ["url", "caption"]
+
+
+class ReviewForm(FlaskForm):
+    stars = f.FloatField("stars", validators=[DataRequired()])
+    review = f.StringField("review")
+    display = ["stars", "review"]
 
 
 class ReservationForm(FlaskForm):
