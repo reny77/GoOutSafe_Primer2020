@@ -29,6 +29,7 @@
                   <th>Customer fullname</th>
                   <th>Phone number</th>
                   <th>Email</th>
+                  <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -41,6 +42,11 @@
                         <td>{{reservation.firstname}} {{reservation.lastname}}</td>
                         <td>{{reservation.phone}}</td>
                         <td>{{reservation.email}}</td>
+                        {% if reservation.checkin %}
+                            <td>Checked in</td>
+                        {% else %}
+                            <td><button class="btn btn-primary checkIn" data-id="{{ reservation.id }}">Checkin</button></td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </tbody>
