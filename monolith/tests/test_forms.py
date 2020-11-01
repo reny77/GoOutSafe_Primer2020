@@ -991,7 +991,7 @@ class Test_GoOutSafeForm:
 
         assert response.status_code == 200
 
-    def test_list_customer_reservations(self, client):
+    def test_operator_checkin(self, client):
         """
         test checkin
         """
@@ -1011,5 +1011,8 @@ class Test_GoOutSafeForm:
 
         reservation_after = db.session.query(Reservation).filter_by(id=reservation.id).first()
         assert reservation_after.checkin is True
+
+
+   
 
 
