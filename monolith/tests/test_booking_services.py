@@ -143,3 +143,14 @@ class Test_UserServices:
         d1 = datetime.datetime(year=2120, month=11, day=26, hour=10)
         book = BookingServices.book(restaurant.id, user, d1, 6)
         assert book[0] is False
+
+    def test_delete_booking(self):
+        """
+        test delete reservation by customer
+        """
+        user = db.session.query(User).filter_by(email="john.doe@email.com").first()
+        reservation = db.session.query(Reservation).first()
+        assert reservation is not None
+        BookingServices.delete_book(reservation.id, user.id)
+        reservation_not_present = db.session.query(Reservation).filter_by(id=reservation.id).first()
+        assert reservation_not_present is None

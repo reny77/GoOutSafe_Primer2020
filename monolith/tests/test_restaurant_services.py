@@ -1,7 +1,7 @@
 import os
 
 import pytest
-from monolith.database import db, User, Restaurant, Review, MenuDish
+from monolith.database import db, User, Restaurant, Review, MenuDish, Reservation
 from monolith.forms import RestaurantForm
 from monolith.services.restaurant_services import RestaurantServices
 from datetime import datetime
@@ -181,3 +181,19 @@ class Test_RestaurantServices:
 
         dish = db.session.query(MenuDish).filter_by(name="Pearà").first()
         assert dish is None
+
+    def test_checkin_reservation(self):
+        """
+        test mark checked in a reservation by operator
+        """
+        reservation = db.session.query(Reservation).first()
+        assert reservation.checkin is False
+        RestaurantServices.checkin_reservations(reservation.id)
+        reservation_query = db.session.query(Reservation).filter_by(id=reservation.id)
+        assert reservation.checkin is True
+        reservation_query.update({Reservation.checkin: False})
+        db.session.commit()
+        db.session.flush()
+
+
+
