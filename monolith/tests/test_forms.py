@@ -399,7 +399,6 @@ class Test_GoOutSafeForm:
         db.session.commit()
 
     def test_mark_positive_ko_user_already_positive(self, client):
-
         user = UserForm()
         user.email = "joe@gmail.com"
         user.firstname = "joe"
@@ -437,7 +436,6 @@ class Test_GoOutSafeForm:
         del_user_on_db(q_user.id)
 
     def test_mark_positive_ko_not_registered_user(self, client):
-
         response = login(client, "health_authority@gov.com", "nocovid")
         assert response.status_code == 200
 
@@ -448,7 +446,6 @@ class Test_GoOutSafeForm:
         assert response.status_code == 200
 
     def test_mark_positive_ko_empty_fields(self, client):
-
         response = login(client, "health_authority@gov.com", "nocovid")
         assert response.status_code == 200
 
@@ -459,7 +456,6 @@ class Test_GoOutSafeForm:
         assert response.status_code == 200
 
     def test_unmark_positive_ko_unathorized(self, client):
-
         response = login(client, "john.doe@email.com", "customer")
         assert response.status_code == 200
 
@@ -488,7 +484,6 @@ class Test_GoOutSafeForm:
         del_user_on_db(q_user.id)
 
     def test_unmark_positive_ko_user_not_positive(self, client):
-
         user = UserForm()
         user.email = "joe@gmail.com"
         user.firstname = "joe"
@@ -517,7 +512,6 @@ class Test_GoOutSafeForm:
         del_user_on_db(q_user.id)
 
     def test_unmark_positive_ko_user_not_registered(self, client):
-
         response = login(client, "health_authority@gov.com", "nocovid")
         assert response.status_code == 200
 
@@ -528,7 +522,6 @@ class Test_GoOutSafeForm:
         assert response.status_code == 200
 
     def test_unmark_positive_ko_empty_fields(self, client):
-
         user = UserForm()
         user.email = "joe@gmail.com"
         user.firstname = "joe"
@@ -570,7 +563,6 @@ class Test_GoOutSafeForm:
         del_user_on_db(q_user.id)
 
     def test_unmark_positive_ok(self, client):
-
         user = UserForm()
         user.email = "joe@gmail.com"
         user.firstname = "joe"
@@ -608,7 +600,6 @@ class Test_GoOutSafeForm:
         del_user_on_db(q_user.id)
 
     def test_search_contacts_with_positive_ko(self, client):
-
         user = UserForm()
         user.email = "joe@gmail.com"
         user.firstname = "joe"
@@ -631,7 +622,6 @@ class Test_GoOutSafeForm:
         del_user_on_db(q_user.id)
 
     def test_search_contacts_with_user_not_registered(self, client):
-
         response = login(client, "health_authority@gov.com", "nocovid")
         assert response.status_code == 200
 
@@ -654,7 +644,7 @@ class Test_GoOutSafeForm:
         assert response.status_code == 200
         assert "logged_test" in response.data.decode("utf-8")
 
-        #GET
+        # GET
         response = client.get("/restaurant/menu")
         assert response.status_code is 200
 
@@ -765,10 +755,10 @@ class Test_GoOutSafeForm:
         """
         test to create an operator
         """
-        #view page
+        # view page
         client.get("/create_operator")
 
-        #POST
+        # POST
         user = UserForm()
         user.firstname = "Steve"
         user.lastname = "Jobs"
@@ -948,7 +938,7 @@ class Test_GoOutSafeForm:
         table = db.session.query(RestaurantTable).filter_by(name="TestTable123").first()
         assert table is not None
 
-        response = client.get("/restaurant/tables?id="+str(table.id))
+        response = client.get("/restaurant/tables?id=" + str(table.id))
         assert response.status_code == 302
 
     def test_add_photo(self, client):
@@ -968,3 +958,21 @@ class Test_GoOutSafeForm:
         assert response.status_code == 200
         assert photo.caption in response.data.decode("utf-8")
 
+    def test_delete_reservation(self, client):
+        """
+        check if dish get deletedS
+        """
+        email = "john.doe@email.com"
+        password = "customer"
+        response = login(client, email, password)
+        assert response.status_code == 200
+        assert "logged_test" in response.data.decode("utf-8")
+
+        reservation = db.session.query(Reservation).first()
+        assert reservation is not None
+        id = reservation.id
+
+        response = client.get("/customer/deletereservations/" + str(id))
+
+        reservation_not_present = db.session.query(Reservation).filter_by(id=id).first()
+        assert reservation_not_present is None
