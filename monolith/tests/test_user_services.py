@@ -152,8 +152,7 @@ class Test_UserServices:
         user = db.session.query(User).filter_by(id=user.id).first()
         assert user is None
 
-
-    def test_modify_user_role_id(self, client):
+    def test_reservation_as_list(self, client):
         """
         Test get reservation customer list
         """
@@ -162,4 +161,3 @@ class Test_UserServices:
         reservations_as_list = UserService.get_customer_reservation(None, None, user.id)
 
         assert len(raw_list) == len(reservations_as_list)
-
