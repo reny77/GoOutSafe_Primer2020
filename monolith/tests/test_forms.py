@@ -960,7 +960,7 @@ class Test_GoOutSafeForm:
 
     def test_delete_reservation(self, client):
         """
-        check if dish get deletedS
+        test delete reservation by customer
         """
         email = "john.doe@email.com"
         password = "customer"
@@ -976,3 +976,17 @@ class Test_GoOutSafeForm:
 
         reservation_not_present = db.session.query(Reservation).filter_by(id=id).first()
         assert reservation_not_present is None
+
+    def test_list_customer_reservations(self, client):
+        """
+        test list customer reservations
+        """
+        email = "john.doe@email.com"
+        password = "customer"
+        response = login(client, email, password)
+        assert response.status_code == 200
+        assert "logged_test" in response.data.decode("utf-8")
+
+        response = client.get("/customer/reservations")
+
+        assert response.status_code == 200
