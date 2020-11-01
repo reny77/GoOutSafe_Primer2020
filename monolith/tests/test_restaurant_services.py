@@ -187,10 +187,11 @@ class Test_RestaurantServices:
         test mark checked in a reservation by operator
         """
         reservation = db.session.query(Reservation).first()
-        assert reservation.checkin is False
-        RestaurantServices.checkin_reservations(reservation.id)
         reservation_query = db.session.query(Reservation).filter_by(id=reservation.id)
+        reservation_query.update({Reservation.checkin: False})
+        RestaurantServices.checkin_reservations(reservation.id)
         assert reservation.checkin is True
+        reservation_query = db.session.query(Reservation).filter_by(id=reservation.id)
         reservation_query.update({Reservation.checkin: False})
         db.session.commit()
         db.session.flush()

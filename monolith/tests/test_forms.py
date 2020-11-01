@@ -1012,7 +1012,41 @@ class Test_GoOutSafeForm:
         reservation_after = db.session.query(Reservation).filter_by(id=reservation.id).first()
         assert reservation_after.checkin is True
 
+    def test_update_booking(self, client):
+        """
+        not logged client can not book.
+        :param client:
+        :return:
+        """
+        email = "john.doe@email.com"
+        password = "customer"
+        response = login(client, email, password)
+        assert response.status_code == 200
+        assert "logged_test" in response.data.decode("utf-8")
 
-   
+        reservation = db.session.query(Reservation).first()
+        assert reservation is not None
+        table = db.session.query(RestaurantTable).filter_by(id=reservation.table_id).first()
+        assert table is not None
 
+        form = ReservationForm()
+        form.reservation_id = reservation.id
+        form.restaurant_id = table.restaurant_id
+        form.reservation_date = "29/11/2030 12:00"
+        form.people_number = 4
 
+        response = client.post("/restaurant/book_update",
+                               data=dict(
+                                   reservation_id=form.reservation_id,
+                                   reservation_date=form.reservation_date,
+                                   people_number=form.people_number,
+                                   restaurant_id=form.restaurant_id,
+                                   submit=True,
+                                   headers={"Content-type": "application/x-www-form-urlencoded"},
+                               ),
+                               follow_redirects=True,
+                               )
+        assert response.status_code == 200
+        d1 = datetime.datetime(year=2030, month=11, day=29, hour=12)
+        reservation_new = db.session.query(Reservation).filter_by(reservation_date=d1).first()
+        assert reservation_new is not None
