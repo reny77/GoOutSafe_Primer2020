@@ -990,3 +990,26 @@ class Test_GoOutSafeForm:
         response = client.get("/customer/reservations")
 
         assert response.status_code == 200
+
+    def test_list_customer_reservations(self, client):
+        """
+        test checkin
+        """
+        email = "ham.burger@email.com"
+        password = "operator"
+        response = login(client, email, password)
+        assert response.status_code == 200
+        assert "logged_test" in response.data.decode("utf-8")
+
+        reservation = db.session.query(Reservation).first()
+        assert reservation is not None
+        before_checkin = reservation.checkin
+        assert before_checkin is False
+
+        response = client.get("/restaurant/checkinreservations/" + str(reservation.id))
+        assert response.status_code == 302
+
+        reservation_after = db.session.query(Reservation).filter_by(id=reservation.id).first()
+        assert reservation_after.checkin is True
+
+
