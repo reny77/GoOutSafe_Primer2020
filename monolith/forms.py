@@ -17,6 +17,7 @@ class UserForm(FlaskForm):
     phone = f.StringField("phone", validators=[DataRequired()])
     dateofbirth = f.DateField("dateofbirth", format="%d/%m/%Y")
     display = ["email", "firstname", "lastname", "password", "phone", "dateofbirth"]
+    # TODO fixe the form date for future born people.
 
 
 class UserEditForm(FlaskForm):
@@ -102,7 +103,7 @@ class PhotoGalleryForm(FlaskForm):
 
 class ReviewForm(FlaskForm):
     stars = f.FloatField("stars", validators=[DataRequired()])
-    review = f.StringField("review")
+    review = f.StringField("review", validators=[DataRequired()])
     display = ["stars", "review"]
 
 
@@ -110,8 +111,17 @@ class ReservationForm(FlaskForm):
     reservation_id = f.HiddenField("")  # for update
     reservation_date = f.DateTimeField("Date", validators=[DataRequired()])
     people_number = f.IntegerField("N. of People", validators=[DataRequired()])
+    friends = f.TextAreaField(
+        "Friend's mails (separated by semicolon)", validators=[DataRequired()]
+    )
     restaurant_id = f.HiddenField("")
-    display = ["reservation_id", "reservation_date", "people_number", "restaurant_id"]
+    display = [
+        "reservation_id",
+        "reservation_date",
+        "people_number",
+        "friends",
+        "restaurant_id",
+    ]
 
 
 class DishForm(FlaskForm):

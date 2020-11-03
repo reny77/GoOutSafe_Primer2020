@@ -71,7 +71,7 @@ class Restaurant(db.Model):
 
     covid_measures = db.Column(db.Text(500))
 
-    # THERE IS NO INTERVAL DATA TYPE IN SQL LITE (FUCK)
+    # THERE IS NO INTERVAL DATA TYPE IN SQL LITE
     # avg_time = db.Column(db.Interval())
     # I store the avg time in integer THAT REPRESENTS MINUTES
     avg_time = db.Column(db.Integer, default=30)
@@ -245,3 +245,12 @@ class Review(db.Model):
     stars = db.Column(SqliteNumeric())
     review = db.Column(db.Text())
     data = db.Column(db.DateTime(), default=datetime.now())
+
+
+class Friend(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # reservation
+    reservation_id = db.Column(db.Integer, db.ForeignKey("reservation.id"))
+    reservation = relationship("Reservation", foreign_keys="Friend.reservation_id")
+    # email
+    email = db.Column(db.Text())
