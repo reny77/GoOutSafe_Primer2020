@@ -175,8 +175,7 @@ class RestaurantServices:
         """
         if name is None:
             raise Exception("Name is required to make this type of research")
-        restaurants_list = db.session.query(Restaurant).filter_by(name=name).all()
-        return restaurants_list
+        return Restaurant.query.filter(Restaurant.name.ilike("%{}%".format(name))).all()
 
     @staticmethod
     def get_restaurant_people(restaurant_id: int):
@@ -248,5 +247,3 @@ class RestaurantServices:
             reservation.update({Reservation.checkin: True})
             db.session.commit()
             db.session.flush()
-
-

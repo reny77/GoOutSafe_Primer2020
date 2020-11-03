@@ -44,8 +44,6 @@ def restaurant_sheet(restaurant_id):
     )
     q_cuisine = db.session.query(Menu).filter_by(restaurant_id=int(restaurant_id)).all()
     photos = PhotoGallery.query.filter_by(restaurant_id=int(restaurant_id)).all()
-    ## FIXME(vincenzopalazzo): This is only a test to try to fix
-    session["RESTAURANT_ID"] = restaurant_id
 
     review_form = ReviewForm()
     book_form = ReservationForm()
@@ -135,7 +133,7 @@ def my_reservations():
         _test="restaurant_reservations_test",
         reservations_as_list=reservations_as_list,
         my_date_formatter=my_date_formatter,
-        reservations_n=RestaurantServices.get_restaurant_people(restaurant_id)
+        reservations_n=RestaurantServices.get_restaurant_people(restaurant_id),
     )
 
 
@@ -272,19 +270,24 @@ def restaurant_review(restaurant_id):
     return redirect("review.html")
 
 
-@restaurants.route("/restaurant/review/<restaurant_id>", methods=["GET"])
-@roles_allowed(roles=["OPERATOR", "CUSTOMER", "ADMIN"])
-def search_restaurant():
-    name = request.form.get("name")
+@restaurants.route("/restaurant/search/<name_rest>", methods=["GET"])
+def search_restaurant(name_rest):
     current_app.logger.debug(
-        "An user want search a restaurant with name {}".format(name)
+        "An user want search a restaurant with name {}".format(name_rest)
     )
-    if name is None or len(name) is 0:
-        message = "Message not specified"
-        return render_template("index.html", _test="error_search_test", error=message)
-    filter_by_name = RestaurantServices.get_restaurants_by_keyword(name=name)
+
+    file = "index.html"
+    if "ROLE" in session and session["ROLE"] == "CUSTOMER":
+        file = "index_customer.html"
+
+    form = ReservationForm()
+    filter_by_name = RestaurantServices.get_restaurants_by_keyword(name=name_rest)
     return render_template(
-        "index.html", _test="error_search_test", restaurants=filter_by_name
+        file,
+        _test="rest_search_test",
+        restaurants=filter_by_name,
+        search=name_rest,
+        form=form,
     )
 
 
@@ -294,4 +297,3 @@ def search_restaurant():
 def checkin_reservations(reservation_id):
     RestaurantServices.checkin_reservations(reservation_id)
     return redirect("/restaurant/reservations")
-

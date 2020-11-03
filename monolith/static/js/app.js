@@ -63,6 +63,39 @@ $(document).ready(function() {
         })
     }
 
+    if($("#reservation_date").length) {
+        $('#reservation_date').datetimepicker({
+            inline: true,
+            format: 'd/m/Y H:m'
+        });
+        $("#newBook").click(function () {
+            $("#bookTableForm").submit();
+        });
+        $(".showBooking").click(function () {
+            $("#restaurant_id").val($(this).data("id"));
+            $("#bookTable").modal("show");
+        });
+    }
+
+    let ratingItems = $(".ratingStats");
+    if (ratingItems.length){
+        ratingItems.each(function(index, e){
+            let rating = parseFloat($(e).data("rating"));
+			$(e).html("")
+            for (let i=1; i<6; i++){
+                if (rating >= 1){
+                    $(e).append("<span class=\"material-icons\"> star </span>");
+                } else if (rating > 0.5){
+                    console.log(rating);
+                    $(e).append("<span class=\"material-icons\"> star_half </span>");
+                } else {
+                    $(e).append("<span class=\"material-icons\"> star_border </span>");
+                }
+                rating--;
+            }
+        })
+    }
+
     var switchView = $("#switchView");
     if (switchView.length){
         console.log("ci sono")
@@ -83,6 +116,35 @@ $(document).ready(function() {
         });
     }
 
+    if ($("#registerRestaurantSubmit").length){
+        $('#open_lunch').datetimepicker({
+          datepicker:false,
+          format:'H:i'
+        });
+        $('#close_lunch').datetimepicker({
+          datepicker:false,
+          format:'H:i'
+        });
+        $('#open_dinner').datetimepicker({
+          datepicker:false,
+          format:'H:i'
+        });
+        $('#close_dinner').datetimepicker({
+          datepicker:false,
+          format:'H:i'
+        });
+    }
+
+    $("#searchSubmit").click(function(){
+        let search = $("#searchbar").val();
+        console.log(search)
+        if (search){
+            window.location = "/restaurant/search/"+search;
+        } else {
+            window.location = "/"
+        }
+
+    })
 
     $(".deleteBooking").click(deleteDialog);
     function deleteDialog() {

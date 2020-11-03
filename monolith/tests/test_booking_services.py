@@ -8,7 +8,7 @@ from monolith.services import BookingServices
 
 
 @pytest.mark.usefixtures("client")
-class Test_UserServices:
+class Test_BookServices:
     def test_new_booking(self):
         """
         this test insert two reservation that should be ok
@@ -22,8 +22,8 @@ class Test_UserServices:
         book1 = BookingServices.book(restaurant.id, user, d1, 4)
         book2 = BookingServices.book(restaurant.id, user, d1, 6)
 
-        assert book1[0] == True
-        assert book2[0] == True
+        assert book1[0] is True
+        assert book2[0] is True
 
         db.session.query(Reservation).filter_by(reservation_date=d1).delete()
         db.session.commit()
@@ -42,8 +42,8 @@ class Test_UserServices:
         book1 = BookingServices.book(restaurant.id, user, d1, 6)
         book2 = BookingServices.book(restaurant.id, user, d1, 6)
 
-        assert book1[0] == True
-        assert book2[0] == False
+        assert book1[0] is True
+        assert book2[0] is False
 
         db.session.query(Reservation).filter_by(reservation_date=d1).delete()
         db.session.commit()
@@ -61,7 +61,7 @@ class Test_UserServices:
 
         book1 = BookingServices.book(restaurant.id, user, d1, 6)
 
-        assert book1[0] == False
+        assert book1[0] is False
 
         db.session.query(Reservation).filter_by(reservation_date=d1).delete()
         db.session.commit()
@@ -152,7 +152,9 @@ class Test_UserServices:
         reservation = db.session.query(Reservation).first()
         assert reservation is not None
         BookingServices.delete_book(reservation.id, user.id)
-        reservation_not_present = db.session.query(Reservation).filter_by(id=reservation.id).first()
+        reservation_not_present = (
+            db.session.query(Reservation).filter_by(id=reservation.id).first()
+        )
         assert reservation_not_present is None
 
     def test_update_booking(self):
