@@ -1,5 +1,7 @@
 from datetime import datetime
+from decimal import Decimal
 
+from flask import current_app
 from monolith.database import (
     Restaurant,
     Menu,
@@ -12,9 +14,7 @@ from monolith.database import (
 )
 from monolith.forms import RestaurantForm
 from monolith.database import db
-
 from sqlalchemy.sql.expression import func, extract
-
 from monolith.model.restaurant_model import RestaurantModel
 
 
@@ -76,14 +76,6 @@ class RestaurantServices:
 
     @staticmethod
     def get_all_restaurants():
-        """
-        Method to return a list of all restaurants inside the database
-        """
-        all_restaurants = db.session.query(Restaurant).all()
-        return all_restaurants
-
-    @staticmethod
-    def get_restaurants_id():
         """
         Method to return a list of all restaurants inside the database
         """
@@ -200,7 +192,7 @@ class RestaurantServices:
             .first()
         )
         if openings is None:
-            return [0, 0]
+            return [0, 0, 0]
 
         tables = (
             db.session.query(RestaurantTable)
@@ -247,7 +239,17 @@ class RestaurantServices:
             .all()
         )
 
-        return [len(reservations_l), len(reservations_d)]
+        reservations_now = (
+            db.session.query(Reservation)
+            .filter(
+                Reservation.checkin is True,
+                Reservation.reservation_date <= datetime.now(),
+                Reservation.reservation_end >= datetime.now(),
+            )
+            .all()
+        )
+
+        return [len(reservations_l), len(reservations_d), len(reservations_now)]
 
     @staticmethod
     def checkin_reservations(reservation_id: int):
@@ -264,14 +266,12 @@ class RestaurantServices:
         :return: RestaurantsModel
         """
         model = RestaurantModel()
-        rest = db.session.query(Restaurant).filter_by(id=int(restaurant_id)).all()
+        rest = db.session.query(Restaurant).filter_by(id=restaurant_id).all()
         if rest is None:
             return None
         rest = rest[0]
         model.bind_restaurant(rest)
-        q_cuisine = (
-            db.session.query(Menu).filter_by(restaurant_id=int(restaurant_id)).all()
-        )
+        q_cuisine = db.session.query(Menu).filter_by(restaurant_id=restaurant_id).all()
         for cusine in q_cuisine:
             model.bind_menu(cusine)
         photos = (
@@ -295,3 +295,46 @@ class RestaurantServices:
             model.bind_hours(hour)
 
         return model
+
+    @staticmethod
+    def get_rating_restaurant(restaurant_id: int) -> float:
+        """
+        TODO(vincenzopalazzo) this function need more testing.
+        This method perform the request to calculate the rating of the restaurants
+        with the review.
+        :param restaurant_id: the restaurant id
+        :return: the rating value, as 0.0 or 5.0
+        """
+        rating_value = 0.0
+        restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).first()
+        if restaurant is None:
+            raise Exception(
+                "Restaurant with id {} don't exist on database".format(restaurant_id)
+            )
+        reviews_list = (
+            db.session.query(Review).filter_by(restaurant_id=restaurant_id).all()
+        )
+        if (reviews_list is None) or (len(reviews_list) == 0):
+            return rating_value
+
+        for review in reviews_list:
+            rating_value = rating_value + float(review.stars)
+
+        rating_value = rating_value / float(len(reviews_list))
+        current_app.logger.debug(
+            "Rating calculate for restaurant with name {} is {}".format(
+                restaurant.name, rating_value
+            )
+        )
+        restaurant.rating = Decimal(rating_value)
+        db.session.commit()
+        return rating_value
+
+    @staticmethod
+    def calculate_rating_for_all():
+        """
+        This method is used inside celery background task to calculate the rating for each restaurants
+        """
+        restaurants_list = db.session.query(Restaurant).all()
+        for restaurant in restaurants_list:
+            RestaurantServices.get_rating_restaurant(restaurant.id)

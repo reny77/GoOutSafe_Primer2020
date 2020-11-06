@@ -7,7 +7,6 @@ from monolith.services.user_service import UserService
 from monolith.tests.utils import get_user_with_email, login
 
 
-@pytest.mark.usefixtures("client")
 class Test_UserServices:
     """
     This test suite test the services about user use case.
@@ -20,12 +19,10 @@ class Test_UserServices:
         :return:
         """
         form = UserForm()
-        form.data["email"] = "alibaba@alibaba.com"
-        form.data["password"] = "Alibaba"
-        form.firstname = "Vincenzo"
-        form.lastname = "Palazzo"
+        form.firstname.data = "Vincenzo"
+        form.lastname.data = "Palazzo"
         form.password = "Alibaba"
-        form.phone = "12345"
+        form.phone.data = "12345"
         form.dateofbirth = "12/12/2020"
         form.email.data = "alibaba@alibaba.com"
         user = User()
@@ -43,12 +40,10 @@ class Test_UserServices:
         :return:
         """
         form = UserForm()
-        form.data["email"] = "alibaba@alibaba.com"
-        form.data["password"] = "Alibaba"
-        form.firstname = "Vincenzo"
-        form.lastname = "Palazzo"
+        form.firstname.data = "Vincenzo"
+        form.lastname.data = "Palazzo"
         form.password = "Alibaba"
-        form.phone = "12345"
+        form.phone.data = "12345"
         form.dateofbirth = "12/12/2020"
         form.email.data = "alibaba@alibaba.com"
         user = User()
@@ -73,12 +68,10 @@ class Test_UserServices:
         - delete user to clean the database
         """
         form = UserForm()
-        form.data["email"] = "alibaba@alibaba.com"
-        form.data["password"] = "Alibaba"
-        form.firstname = "Vincenzo"
-        form.lastname = "Palazzo"
+        form.firstname.data = "Vincenzo"
+        form.lastname.data = "Palazzo"
         form.password = "Alibaba"
-        form.phone = "12345"
+        form.phone.data = "12345"
         form.dateofbirth = "12/12/2020"
         form.email.data = "alibaba@alibaba.com"
         user = User()
@@ -110,12 +103,10 @@ class Test_UserServices:
         """
 
         form = UserForm()
-        form.data["email"] = "alibaba1@alibaba.com"
-        form.data["password"] = "Alibaba"
-        form.firstname = "Vincenzo"
-        form.lastname = "Palazzo"
+        form.firstname.data = "Vincenzo"
+        form.lastname.data = "Palazzo"
         form.password = "Alibaba"
-        form.phone = "12345"
+        form.phone.data = "12345"
         form.dateofbirth = "12/12/2020"
         form.email.data = "alibaba1@alibaba.com"
         user = User()
@@ -138,12 +129,10 @@ class Test_UserServices:
         """
 
         form = UserForm()
-        form.data["email"] = "alibaba1@alibaba.com"
-        form.data["password"] = "Alibaba"
-        form.firstname = "Vincenzo"
-        form.lastname = "Palazzo"
+        form.firstname.data = "Vincenzo"
+        form.lastname.data = "Palazzo"
         form.password = "Alibaba"
-        form.phone = "12345"
+        form.phone.data = "12345"
         form.dateofbirth = "12/12/2020"
         form.email.data = "alibaba1@alibaba.com"
         user = User()

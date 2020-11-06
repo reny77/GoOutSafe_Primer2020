@@ -5,3 +5,7 @@
 .coverage
 
 gooutsafe.egg-info/
+
+logger.txt
+
+logger2.txt

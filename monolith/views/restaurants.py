@@ -70,7 +70,7 @@ def restaurant_sheet(restaurant_id):
         phone=model.phone,
         covid_measures=model.covid_measures,
         hours=model.opening_hours,
-        cuisine=model.covid_measures,
+        cuisine=model.cusine,
         photos=model.photos,
         dishes=model.dishes,
         review_form=review_form,
@@ -144,7 +144,7 @@ def my_reservations():
     reservations_as_list = RestaurantServices.get_reservation_rest(
         owner_id, restaurant_id, fromDate, toDate, email
     )
-
+    print(RestaurantServices.get_restaurant_people(restaurant_id))
     return render_template(
         "reservations.html",
         _test="restaurant_reservations_test",
@@ -225,6 +225,11 @@ def my_tables():
 @login_required
 @roles_allowed(roles=["OPERATOR"])
 def my_menu():
+    if "RESTAURANT_ID" in session:
+        dishes = MenuDish.query.filter_by(restaurant_id=session["RESTAURANT_ID"]).all()
+    else:
+        dishes = []
+    _test = "menu_view_test"
     if request.method == "POST":
         form = DishForm()
         # add dish to the db
@@ -235,19 +240,25 @@ def my_menu():
             dish.restaurant_id = session["RESTAURANT_ID"]
             db.session.add(dish)
             db.session.commit()
+            dishes.append(dish)
             _test = "menu_ok_test"
         else:
             _test = "menu_ko_form_test"
             print(form.errors)
-        return render_template(
-            "restaurant_menu.html", _test=_test, form=form, dishes=[]
-        )
-    else:
-        dishes = MenuDish.query.filter_by(restaurant_id=session["RESTAURANT_ID"]).all()
-        form = DishForm()
-        return render_template(
-            "restaurant_menu.html", _test="menu_view_test", form=form, dishes=dishes
-        )
+            return render_template(
+                "restaurant_menu.html",
+                _test=_test,
+                form=form,
+                dishes=dishes,
+                error=form.errors,
+            )
+    form = DishForm()
+    return render_template(
+        "restaurant_menu.html",
+        _test=_test,
+        form=form,
+        dishes=dishes,
+    )
 
 
 @restaurants.route("/restaurant/menu/delete/<dish_id>")
@@ -293,14 +304,15 @@ def restaurant_review(restaurant_id):
             restaurant_id, current_user.id, form.data["stars"], form.data["review"]
         )
         if review is not None:
-            print("Review inserted!")
+            current_app.logger.debug("Review inserted!")
             return render_template(
                 "review.html",
                 _test="review_done_test",
                 restaurant_name=RestaurantServices.get_restaurant_name(restaurant_id),
                 review=review,
             )
-
+        rating_value = RestaurantServices.get_rating_restaurant(restaurant_id)
+        current_app.logger.debug("New rating value is: {}".format(rating_value))
     return render_template(
         "review.html",
         _test="review_done_test",
